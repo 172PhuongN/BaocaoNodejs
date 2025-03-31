@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .menu {
+            border: 1px solid #e0e0e0;
+            display: inline-block;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            max-width: 400px; /* Giới hạn chiều rộng */
+            margin: auto; /* Căn giữa */
+        }
+        
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .level1 {
+            font-weight: bold;
+            cursor: pointer;
+            padding: 12px 18px;
+            background: linear-gradient(to right, #e0f7fa, #ffffff);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            position: relative;
+            transition: all 0.3s ease;
+            border-left: 4px solid #3498db;
+            color: #2c3e50;
+        }
+        
+        .level1:hover {
+            background-color: #b2ebf2; /* Màu nền khi hover */
+            transform: translateX(4px);
+        }
+        
+        .level1::after {
+            content: '▼';
+            position: absolute;
+            right: 10px;
+            font-size: 12px;
+            color: #95a5a6;
+        }
+        
+        .level1 ul {
+            display: none; /* Ẩn danh sách con */
+            position: relative;
+            background: white;
+            padding: 0;
+            margin: 0;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .level1:hover > ul {
+            display: block; /* Hiển thị danh sách con khi hover */
+            animation: fadeIn 0.2s ease;
+        }
+        
+        .level2 {
+            padding: 10px 15px;
+            white-space: nowrap;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            color: #34495e;
+        }
+        
+        .level2:hover {
+            background-color: #e1f5fe;
+            color: #3498db;
+            padding-left: 20px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Menu</h1>
+    <div class="menu" id="menu-container"></div>
+    
+    <script>
+        async function fetchMenu() {
+            try {
+                const response = await fetch('http://localhost:3000/menus'); // Gọi API
+                const menu = await response.json();
+                renderMenu(menu);
+            } catch (error) {
+                console.error('Lỗi khi tải menu:', error);
+            }
+        }
+        
+        function renderMenu(menu) {
+            const menuContainer = document.getElementById('menu-container');
+            const ul = document.createElement('ul');
+            
+            menu.forEach(item => {
+                const li = document.createElement('li');
+                li.classList.add('level1');
+                li.textContent = item.text;
+                
+                // Tạo danh sách con (level 2)
+                if (item.children && item.children.length > 0) {
+                    const childUl = document.createElement('ul');
+                    item.children.forEach(child => {
+                        const childLi = document.createElement('li');
+                        childLi.classList.add('level2');
+                        childLi.textContent = child.text;
+                        childUl.appendChild(childLi);
+                    });
+                    li.appendChild(childUl);
+                }
+                
+                ul.appendChild(li);
+            });
+            
+            menuContainer.appendChild(ul);
+        }
+        
+        // Gọi API khi trang tải xong
+        fetchMenu();
+    </script>
+</body>
+</html>
