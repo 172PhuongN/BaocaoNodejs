@@ -32,10 +32,10 @@ router.post('/', async function(req, res, next) {
     productName: body.productName,
     price: body.price,
     quantity: body.quantity,
-    categoryID: body.category
-  })
-  await newProduct.save()
-  res.send(newProduct);
+    categoryID: body.categoryID 
+  });
+  await newProduct.save();
+  res.status(201).send(newProduct); 
 });
 router.put('/:id', async function(req, res, next) {
   try {
