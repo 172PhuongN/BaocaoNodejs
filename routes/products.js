@@ -3,6 +3,7 @@ var express = require('express');
 var router = express.Router();
 let productSchema = require('../models/products')
 let BuildQueies = require('../Utils/BuildQuery')
+let Category = require('../models/categories'); // Đảm bảo đường dẫn đúng
 
 //http://localhost:3000/products?name=iph&price[$gte]=1600&price[$lte]=3000
 /* GET users listing. */
@@ -63,6 +64,30 @@ router.put('/:id', async function(req, res, next) {
   // await newProduct.save()
   // res.send(newProduct);
 });
+// Xóa sản phẩm theo ID
+router.delete('/:id', async function(req, res, next) {
+  try {
+    const productId = req.params.id;
+    const deletedProduct = await productSchema.findByIdAndDelete(productId);
 
+    if (!deletedProduct) {
+      return res.status(404).send({
+        success: false,
+        message: "Product not found"
+      });
+    }
+
+    res.status(200).send({
+      success: true,
+      message: "Product deleted successfully",
+      data: deletedProduct
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message
+    });
+  }
+});
 
 module.exports = router;

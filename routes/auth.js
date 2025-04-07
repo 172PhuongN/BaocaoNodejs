@@ -12,7 +12,7 @@ router.post('/signup', async function (req, res, next) {
       body.username,
       body.password,
       body.email,
-      'user'
+      'customer'
     )
     res.status(200).send({
       success: true,
@@ -23,24 +23,41 @@ router.post('/signup', async function (req, res, next) {
   }
 
 })
+const jwt = require('jsonwebtoken');
+const SECRET_KEY = require('../Utils/constants').SECRET_KEY;
+
 router.post('/login', async function (req, res, next) {
   try {
     let username = req.body.username;
     let password = req.body.password;
-    let result = await userController.checkLogin(username, password);
-    res.cookie('token', result, {
-      httpOnly: true,
-      expires: new Date(Date.now() + 30 * 60 * 1000),
-      signed: true
-    })
+    let user = await userController.checkLogin(username, password);
+
+    // Tạo JWT token
+    // Thêm log để chắc chắn user có id
+    console.log("=== Đăng nhập thành công, user:", user);
+
+    const token = jwt.sign(
+      {
+        id: user._id?.toString(), // Đảm bảo là string và có tồn tại
+        username: user.username
+      },
+      SECRET_KEY,
+      {
+        expiresIn: '7d' // Token hết hạn sau 7 ngày
+      }
+    );
+    // Gửi token (tuỳ bạn có muốn set cookie nữa không)
     res.status(200).send({
       success: true,
-      data: result
-    })
+      token: token,
+      data: user
+    });
+
   } catch (error) {
     next(error);
   }
-})
+});
+
 router.get('/me', check_authentication, async function (req, res, next) {
   try {
     res.status(200).send({

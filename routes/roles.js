@@ -51,5 +51,24 @@ router.put('/:id', async function(req, res, next) {
     });
   }
 });
-
+router.delete('/:id', async function(req, res, next) {
+  try {
+    let role = await roleSchema.findByIdAndDelete(req.params.id);
+    if (!role) {
+      return res.status(404).send({
+        success: false,
+        message: "Role not found"
+      });
+    }
+    res.status(200).send({
+      success: true,
+      message: "Role deleted successfully"
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message
+    });
+  }
+});
 module.exports = router;

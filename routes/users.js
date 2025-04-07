@@ -20,6 +20,17 @@ router.get('/', async function (req, res, next) {
   let users = await userSchema.find(BuildQueries.QueryUser(queries)).populate('role');
   res.send(users);
 });
+router.get('/me', check_authentication, async function (req, res, next) {
+  try {
+    let user = await userSchema.findById(req.user._id).populate('role');
+    if (!user) {
+      return res.status(404).send({ message: 'User not found' });
+    }
+    res.status(200).send({ success: true, data: user });
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.get('/:id', check_authentication, async function (req, res, next) {
   try {

@@ -13,9 +13,11 @@ var usersRouter = require('./routes/users');
 var app = express();
 
 app.use(cors({
-  origin:'*',
-  methods:['get']
-}))
+  origin: 'http://localhost:3001', // React chạy ở cổng 3000
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
+
 
 mongoose.connect("mongodb://localhost:27017/C4");
 mongoose.connection.on("connected", () => {
@@ -43,6 +45,7 @@ app.use('/products', require('./routes/products'));
 app.use('/categories', require('./routes/categories'));
 app.use('/orders', require('./routes/orders'));
 app.use('/wishlist', require('./routes/wishlist'));
+app.use('/api/user', require('./routes/users'));
 
 
 
