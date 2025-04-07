@@ -12,6 +12,8 @@ import Header from './pages/Header';
 import ProductManager from './pages/ProductManager';
 import UserManager from './pages/UserManager';
 import RoleManager from './pages/RoleManager';
+import Cart from './pages/Cart';
+import Yeuthich from './pages/Yeuthich';
 function App() {
   return (
     <div>
@@ -26,6 +28,8 @@ function App() {
           <Route path="/ProductManager" element={<ProductManager />} />
           <Route path="/UserManager" element={<UserManager />} />
           <Route path="/RoleManager" element={<RoleManager />} />
+          <Route path="/Cart" element={<Cart />} />
+          <Route path="/Yeuthich" element={<Yeuthich />} />
         </Routes>
       </Router>
     </div>

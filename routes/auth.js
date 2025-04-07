@@ -32,21 +32,25 @@ router.post('/login', async function (req, res, next) {
     let password = req.body.password;
     let user = await userController.checkLogin(username, password);
 
-    // Tạo JWT token
-    // Thêm log để chắc chắn user có id
-    console.log("=== Đăng nhập thành công, user:", user);
+    console.log("== USER TRƯỚC KHI TẠO TOKEN:", user);
+
+    if (!user) {
+      return res.status(401).json({ message: "Sai tài khoản hoặc mật khẩu" });
+    }
 
     const token = jwt.sign(
       {
-        id: user._id?.toString(), // Đảm bảo là string và có tồn tại
+        id: user._id?.toString(),
         username: user.username
       },
       SECRET_KEY,
       {
-        expiresIn: '7d' // Token hết hạn sau 7 ngày
+        expiresIn: '7d'
       }
     );
-    // Gửi token (tuỳ bạn có muốn set cookie nữa không)
+
+    console.log("Token được tạo:", token);
+
     res.status(200).send({
       success: true,
       token: token,
@@ -58,16 +62,17 @@ router.post('/login', async function (req, res, next) {
   }
 });
 
-router.get('/me', check_authentication, async function (req, res, next) {
+router.get('/me',  check_authentication, async function (req, res, next) {
   try {
     res.status(200).send({
       success: true,
       data: req.user
-    })
+    });
   } catch (error) {
-    next();
+    next(error);
   }
-})
+});
+
 router.post('/forgotpasswood', async function (req, res, next) {
   let body = req.body;
   let email = body.email;
@@ -81,20 +86,31 @@ router.post('/forgotpasswood', async function (req, res, next) {
     message: `da gui thanh cong`
   })
 })
+const bcrypt = require('bcrypt'); // thêm dòng này ở đầu file nếu chưa có
+
 router.post('/changepasswordforgot/:token', async function (req, res, next) {
   let body = req.body;
   let token = req.params.token;
-  let password = body.password
-  let user = await userController.getUserByToken(token)
+  let password = body.password;
+
+  let user = await userController.getUserByToken(token);
+  if (!user) return res.status(400).send("Token không hợp lệ");
+
   if (user.resetPasswordTokenExp > Date.now()) {
-    user.password = password;
+    const salt = await bcrypt.genSalt(10); // 🔒 tạo salt
+    const hashedPassword = await bcrypt.hash(password, salt); // 🔐 mã hóa mật khẩu
+
+    user.password = hashedPassword;
     user.resetPasswordToken = null;
     user.resetPasswordTokenExp = null;
-    await user.save();
-    res.send("da up date password")
+
+    await user.save(); // ✅ lưu mật khẩu đã mã hóa
+
+    res.send("Đã cập nhật mật khẩu thành công");
   } else {
-    res.send("token khong chinh xac")
+    res.send("Token không chính xác hoặc đã hết hạn");
   }
-})
+});
+
 
 module.exports = router

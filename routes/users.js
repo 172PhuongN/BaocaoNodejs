@@ -70,20 +70,26 @@ router.post('/',
     }
 
   });
+  const bcrypt = require('bcrypt'); // thêm ở đầu file nếu chưa có
 
 router.put('/:id', async function (req, res, next) {
   try {
     let body = req.body;
-    let user = await userSchema.findById(
-      req.params.id
-    ).populate({
+    let user = await userSchema.findById(req.params.id).populate({
       path: "role", select: "roleName"
     });
+
     if (user) {
       let allowField = ["password", "email", "fullName", "avatarUrl"];
       for (const key of Object.keys(body)) {
         if (allowField.includes(key)) {
-          user[key] = body[key]
+          if (key === "password" && body[key]) {
+            const salt = await bcrypt.genSalt(10);
+            user[key] = await bcrypt.hash(body[key], salt);
+            console.log(">>> Mật khẩu mới đã mã hóa:", hashed); // 🔒 mã hoá mật khẩu
+          } else {
+            user[key] = body[key];
+          }
         }
       }
       await user.save();
@@ -96,6 +102,8 @@ router.put('/:id', async function (req, res, next) {
     next(error)
   }
 });
+
+  
 
 let avatarDir = path.join(__dirname, '../avatars')
 let storage = multer.diskStorage({

@@ -37,23 +37,19 @@ module.exports = {
     },
     checkLogin: async function (username, password) {
         if (username && password) {
-            let user = await userSchema.findOne({
-                username: username
-            })
-            if (user) {
-                if (bcrypt.compareSync(password, user.password)) {
-                    return jwt.sign({
-                        id: user._id,
-                        expireIn: (new Date(Date.now() + 30 * 60 * 1000)).getTime()
-                    }, constants.SECRET_KEY);
-                } else {
-                    throw new Error("username or password is incorrect")
-                }
+          let user = await userSchema.findOne({ username: username });
+          if (user) {
+            if (bcrypt.compareSync(password, user.password)) {
+              return user; // ✅ TRẢ VỀ USER CHỨ KHÔNG PHẢI token
             } else {
-                throw new Error("username or password is incorrect")
+              throw new Error("username or password is incorrect");
             }
+          } else {
+            throw new Error("username or password is incorrect");
+          }
         } else {
-            throw new Error("username or password is incorrect")
+          throw new Error("username or password is incorrect");
         }
-    }
+      }
+      
 }

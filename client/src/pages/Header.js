@@ -54,6 +54,9 @@ function Header() {
                 <Link to="/ProductManager">Sản phẩm</Link>
               </li>
               <li>
+                <Link to="/Yeuthich">Yêu Thích</Link>
+              </li>
+              <li>
                 <Link to="/UserManager">Người Dùng</Link>
               </li>
               <li>

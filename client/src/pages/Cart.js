@@ -1,56 +1,93 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
+import Header from './Header';
 
-function OrderDetails() {
-  const { orderId } = useParams(); // Lấy ID đơn hàng từ URL
-  const [order, setOrder] = useState(null);
+function Cart() {
+  const [orders, setOrders] = useState([]);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchOrder = async () => {
-      try {
-        const response = await fetch(`http://localhost:3000/orders/${orderId}`);
-        const data = await response.json();
-        if (response.ok) {
-          setOrder(data);
-        } else {
-          setError(data.message || 'Không tìm thấy đơn hàng');
+  // Hàm lấy danh sách đơn hàng
+  const fetchOrders = async (userId, token) => {
+    try {
+      const res = await fetch(`http://localhost:3000/orders/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-      } catch (err) {
-        setError('Lỗi kết nối server');
-      }
-    };
+      });
 
-    fetchOrder();
-  }, [orderId]);
+      if (!res.ok) throw new Error('Không thể lấy đơn hàng.');
+
+      const data = await res.json();
+      setOrders(data);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Bạn chưa đăng nhập.');
+      return;
+    }
+
+    const decoded = jwtDecode(token);
+    const userId = decoded.id;
+
+    fetchOrders(userId, token);
+  }, []);
+
+  const handleCancelOrder = async (orderId) => {
+    try {
+      const res = await fetch(`http://localhost:3000/orders/${orderId}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text);
+      }
+
+      // Xoá đơn khỏi danh sách hiện tại
+      setOrders(orders.filter(order => order._id !== orderId));
+      alert("Huỷ đơn hàng thành công.");
+    } catch (err) {
+      setError("Không thể huỷ đơn hàng: " + err.message);
+    }
+  };
 
   return (
-    <div className="container mt-5">
-      <h2>Chi Tiết Đơn Hàng</h2>
+    <div>
+      <Header />
+      <h2 className="text-center my-4">Giỏ Hàng / Đơn Đặt</h2>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
 
-      {error && <div className="alert alert-danger">{error}</div>}
-
-      {order ? (
-        <div>
-          <h3>ID Đơn Hàng: {order._id}</h3>
-          <p><strong>Tổng Tiền:</strong> {order.totalAmount} VND</p>
-          <p><strong>Trạng Thái:</strong> {order.status}</p>
-          <h4>Sản Phẩm:</h4>
-          <ul>
-            {order.products.map((product, index) => (
-              <li key={index}>
-                <strong>Sản phẩm {index + 1}:</strong>
-                <p>ID Sản phẩm: {product.productId}</p>
-                <p>Số lượng: {product.quantity}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
+      {orders.length === 0 ? (
+        <p className="text-center">Chưa có đơn hàng nào.</p>
       ) : (
-        <p>Đang tải thông tin đơn hàng...</p>
+        <div className="container">
+          {orders.map(order => (
+            <div key={order._id} className="border p-3 my-2">
+              <h5>Mã đơn: {order._id}</h5>
+              <p><strong>Tổng tiền:</strong> {order.totalAmount} VND</p>
+              <p><strong>Sản phẩm:</strong></p>
+              <ul>
+                {order.products.map((item, index) => (
+                  <li key={index}>ID: {item.productId} - Số lượng: {item.quantity}</li>
+                ))}
+              </ul>
+              <button 
+                className="btn btn-danger mt-2"
+                onClick={() => handleCancelOrder(order._id)}
+              >
+                Huỷ Đơn
+              </button>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
 }
 
-export default OrderDetails;
+export default Cart;
